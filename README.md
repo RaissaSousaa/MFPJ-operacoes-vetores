@@ -1,6 +1,7 @@
 # Trabalho A2 — Operações Vetoriais com p5.js
 
 Atividade da disciplina de Matemática e Física para Jogos de SMD - UFC
+
 Docente: Gilvan Maia
 
 ## Objetivo
