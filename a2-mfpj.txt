@@ -1,0 +1,209 @@
+//nome: Raissa Costa Sousa - 569762
+
+class Vetor {
+  constructor(x = 0, y = 0) {
+    this.x = x;
+    this.y = y;
+  }
+  soma(b) {
+    return new Vetor(this.x + b.x, this.y + b.y);
+  }
+  sub(b) {
+    return new Vetor(this.x - b.x, this.y - b.y);
+  }
+  inv() {
+    return new Vetor(-this.x, -this.y);
+  }
+  mult(k) {
+    return new Vetor(this.x * k, this.y * k);
+  }
+  dot(b) {
+    return this.x * b.x + this.y * b.y;
+  }
+  cross(b) {
+    return this.x * b.y - this.y * b.x;
+  }
+  tam() {
+    return Math.sqrt(this.x * this.x + this.y * this.y);
+  }
+
+  unit() {
+    const t = this.tam();
+    if (t === 0) return new Vetor(0, 0);
+    return new Vetor(this.x / t, this.y / t);
+  }
+  proj(base) {
+    const d = base.dot(base);
+    if (d === 0) return new Vetor(0, 0);
+    return base.mult(this.dot(base) / d);
+  }
+  desliza(n) {
+    return this.sub(this.proj(n));
+  }
+  reflete(n) {
+    const u = n.unit();
+    return this.sub(u.mult(2 * this.dot(u)));
+  }
+  toString() {
+    return "(" + this.x.toFixed(2) + ", " + this.y.toFixed(2) + ")";
+  }
+}
+
+//parte1
+function mostraOperacoes() {
+  const v = new Vetor(3, -2);
+  const u = new Vetor(1, 2);
+
+  print("v = " + v);
+  print("u = " + u);
+  print("soma: " + v.soma(u));
+  print("sub: " + v.sub(u));
+  print("inverso: " + v.inv());
+  print("mult por 2.5: " + v.mult(2.5));
+  print("dot: " + v.dot(u));
+  print("cross: " + v.cross(u));
+  print("tam de v: " + v.tam().toFixed(2));
+  print("projecao de v em u: " + v.proj(u));
+  print("desliza: " + v.desliza(u));
+  print("reflete: " + v.reflete(u));
+}
+
+//parte2
+let lista = []; // os vetores que vao ser somados
+const cores = [[30,90,220],[30,160,60],[240,140,20],[220,40,110],[150,40,200],[20,160,160]];
+
+function setup() {
+  createCanvas(600, 600);
+  mostraOperacoes();
+  aleatorios(3);       // comeca com 3 vetores na tela
+}
+
+function draw() {
+  fundoCart();
+
+  //cada seta comeca onde a anterior terminou
+  let x = 0, y = 0;
+  for (let i = 0; i < lista.length; i++) {
+    const vet = lista[i];
+    const x2 = x + vet.x;
+    const y2 = y + vet.y;
+    const c = cores[i % cores.length];
+
+    //seta com linha e ponta
+    stroke(c[0], c[1], c[2]);
+    fill(c[0], c[1], c[2]);
+    strokeWeight(2);
+    seta(x, y, x2, y2);
+
+    fill(c[0], c[1], c[2]);
+    textSize(15);
+    texto(String.fromCharCode(117 + i), (x + x2) / 2 + 5, (y + y2) / 2 + 5);
+
+    x = x2;
+    y = y2;
+  }
+
+
+  // a seta soma termina no mesmo ponto
+  if (lista.length > 0) {
+    stroke(120, 120, 120);
+    fill(120, 120, 120);
+    strokeWeight(2);
+    seta(0, 0, x, y);
+  }
+
+  ajuda();
+}
+
+// clicando adiciona um vetor da ponta atual ate o cursor
+function mousePressed() {
+  grabMouse();
+  let x = 0, y = 0;
+  for (const vet of lista) {
+    x += vet.x;
+    y += vet.y;
+  }
+  lista.push(new Vetor(mouseXC - x, mouseYC - y));
+}
+
+// teclas faz embaralhar E, gera aleatorios R, C limpa
+function keyPressed() {
+  if (key === 'e' || key === 'E') embaralha(lista);
+  else if (key === 'r' || key === 'R') aleatorios(3);
+  else if (key === 'c' || key === 'C') lista = [];
+}
+
+function aleatorios(n) {
+  lista = [];
+  for (let i = 0; i < n; i++) {
+    lista.push(new Vetor(random(-90, 90), random(-90, 90)));   
+  }
+}
+
+// embaralha a lista (troca cada posicao com uma anterior sorteada)
+function embaralha(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(random(i + 1));
+    const t = arr[i];
+    arr[i] = arr[j];
+    arr[j] = t;
+  }
+}
+
+function ajuda() {
+  const esq = -width / 2 + 12;
+  const topo = height / 2 - 20;
+  fill(0);
+  textSize(13);
+  texto("E embaralha | R aleatorios | C limpa", esq, topo);
+  texto("A seta cinza eh a soma dos vetores", esq, topo - 18);
+
+  let termos = [];
+  for (let i = 0; i < lista.length; i++) termos.push(String.fromCharCode(117 + i));
+  texto("Ordem atual: " + (termos.length ? termos.join(" + ") : "(vazio)"), esq, -height / 2 + 16);
+}
+
+var mouseXC = 0, mouseYC = 0;
+
+function fundoCart() {
+  background(255);
+  mouseXC = mouseX - width / 2;
+  mouseYC = height / 2 - mouseY;
+
+  translate(width / 2, height / 2);
+  scale(1, -1);
+
+  const R = width / 2 - 40;
+  stroke(0);
+  fill(0);
+  strokeWeight(2);
+  seta(-R, 0, R, 0);   // eixo X
+  seta(0, -R, 0, R);   // eixo Y
+}
+
+function grabMouse() {
+  mouseXC = mouseX - width / 2;
+  mouseYC = height / 2 - mouseY;
+}
+
+function texto(str, x, y) {
+  push();
+    noStroke();                 // texto sem borda colorida (fica fino e so com a cor do fill)
+    translate(x, y);
+    scale(1, -1);
+    translate(-x, -y);
+    text(str, x, y);
+  pop();
+}
+
+function seta(x1, y1, x2, y2) {
+  line(x1, y1, x2, y2);
+  var dx = x2 - x1, dy = y2 - y1;
+  var le = sqrt(dx * dx + dy * dy);
+  if (le === 0) return;
+  var vx = dx / le, vy = dy / le;
+  var ux = -vy, uy = vx;
+  triangle(x2, y2,
+           x2 - 5 * vx + 2 * ux, y2 - 5 * vy + 2 * uy,
+           x2 - 5 * vx - 2 * ux, y2 - 5 * vy - 2 * uy);
+}
